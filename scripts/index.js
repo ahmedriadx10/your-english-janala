@@ -5,22 +5,15 @@ const wordContainer = document.getElementById("words-container");
 const loadingContainer = document.getElementById("spinner-container");
 const wordDataContainer=document.getElementById('word-data')
 const wordModalDialogue=document.getElementById('word_modal')
+const userSearchInput=
+document.getElementById('user-search-value')
 const getAllLevels = () => {
   fetch("https://openapi.programming-hero.com/api/levels/all")
     .then((response) => response.json())
     .then((levelData) => loadAllLevelsButton(levelData.data));
 };
 
-/**
- * 
- *{
-    "id": 8,
-    "level": 2,
-    "word": "Hesitate",
-    "meaning": "দ্বিধা করা",
-    "pronunciation": "হেজিটেট"
-}
- */
+
 
 const renderLessonWords = (wordList) => {
   // word list gives empthy data it will show a default skeleton
@@ -131,7 +124,8 @@ const loadingShow = (pulse) => {
 function pronounceWord(word) {
 
   const utterance = new SpeechSynthesisUtterance(word);
-  utterance.lang = "en-EN"; // English
+  utterance.lang = "en-US"; // English
+
   window.speechSynthesis.speak(utterance);
 }
 
@@ -177,6 +171,39 @@ wordModalDialogue.showModal()
 
 })
 }
+
+// search btn
+
+function allLevelDataGetAndFilter(getUserValue){
+
+fetch('https://openapi.programming-hero.com/api/words/all')
+.then(response=>response.json())
+.then(x=>{
+const {data}=x
+const filterData=data.filter((wordData)=>{
+
+  return wordData.word.toLowerCase().includes(getUserValue)
+
+
+})
+
+loadingShow(false)
+renderLessonWords(filterData)
+
+})
+
+}
+
+
+document.getElementById('search-btn').addEventListener('click',()=>{
+const userSearchValue=userSearchInput.value
+
+allLevelDataGetAndFilter(userSearchValue.trim().toLowerCase())
+
+userSearchInput.value=''
+loadingShow(true)
+})
+
 
 
 getAllLevels();
