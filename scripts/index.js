@@ -3,6 +3,8 @@ const levelButtonsContainer = document.getElementById(
 );
 const wordContainer = document.getElementById("words-container");
 const loadingContainer = document.getElementById("spinner-container");
+const wordDataContainer=document.getElementById('word-data')
+const wordModalDialogue=document.getElementById('word_modal')
 const getAllLevels = () => {
   fetch("https://openapi.programming-hero.com/api/levels/all")
     .then((response) => response.json())
@@ -50,7 +52,7 @@ const renderLessonWords = (wordList) => {
   wordContainer.innerHTML = "";
 
   wordList.forEach((wordData) => {
-    const { word, meaning, pronunciation } = wordData;
+    const {id, word, meaning, pronunciation } = wordData;
 
     const wordCard = document.createElement("div");
     wordCard.innerHTML = `
@@ -60,8 +62,8 @@ const renderLessonWords = (wordList) => {
 <p class="font-medium text-xl">Meaning/Pronounciation</p>
 <p class="font-bangla text-2xl font-semibold">${meaning ? meaning : "অর্থ খুঁজে পাওয়া যায়নি"}/${pronunciation}</p>
 <div class="flex justify-between items-center mt-10">
-<button class="btn bg-primary-content text-lg"><i class="fa-solid fa-circle-info pointer-events-none"></i></button>
-<button class="btn bg-primary-content text-lg"><i class="fa-solid fa-volume-high pointer-events-none"></i></button>
+<button class="btn bg-primary-content text-lg" onclick="modalShow(${id})"><i class="fa-solid fa-circle-info pointer-events-none"></i></button>
+<button onclick="pronounceWord('${word}')" class="btn bg-primary-content text-lg"><i class="fa-solid fa-volume-high pointer-events-none"></i></button>
 
 </div>
 </div>
@@ -124,5 +126,57 @@ const loadingShow = (pulse) => {
     loadingContainer.classList.add("hidden");
   }
 };
+
+
+function pronounceWord(word) {
+
+  const utterance = new SpeechSynthesisUtterance(word);
+  utterance.lang = "en-EN"; // English
+  window.speechSynthesis.speak(utterance);
+}
+
+
+
+const synonymsAdd=(synonyms)=>{
+
+
+const synonymsData=synonyms.map(x=>{
+
+ return `<span class="btn bg-primary-content">${x}</span>`
+})
+
+return synonymsData.join(' ')
+
+}
+
+
+// modal show function 
+const modalShow=(id)=>{
+
+fetch(`https://openapi.programming-hero.com/api/word/${id}`)
+.then(respons=>respons.json())
+.then(x=>{
+
+const {word,meaning,pronunciation,sentence,synonyms}=x.data
+
+wordDataContainer.innerHTML=`
+
+<div class="space-y-8">
+  <h2 class="font-bangla text-4xl font-semibold">${word} <span>(<i class="fa-solid fa-microphone-lines"></i>:${pronunciation})</span></h2>
+<div><p class="text-2xl font-semibold">Meaning</p>
+<span class="font-bangla font-medium">${meaning?meaning:"অর্থ খুঁজে পাওয়া যায়নি"}</span></div>
+<div><p class="text-2xl font-semibold">Example</p>
+<span class='text-lg'>${sentence}</span></div>
+<div><p class="font-bangla font-medium text-xl">সমার্থক শব্দ গুলো</p>
+<p class="mt-2 flex items-center gap-4">${synonymsAdd(synonyms)}</p></div>
+</div>
+
+`
+
+wordModalDialogue.showModal()
+
+})
+}
+
 
 getAllLevels();
