@@ -1,13 +1,13 @@
-const levelButtonsContainer=document.getElementById('lesson-buttons-container')
-const wordContainer=document.getElementById('words-container')
-const getAllLevels=()=>{
-
-  fetch('https://openapi.programming-hero.com/api/levels/all')
-  .then(response=>response.json())
-  .then(levelData=>loadAllLevelsButton(levelData.data))
-
-}
-
+const levelButtonsContainer = document.getElementById(
+  "lesson-buttons-container",
+);
+const wordContainer = document.getElementById("words-container");
+const loadingContainer = document.getElementById("spinner-container");
+const getAllLevels = () => {
+  fetch("https://openapi.programming-hero.com/api/levels/all")
+    .then((response) => response.json())
+    .then((levelData) => loadAllLevelsButton(levelData.data));
+};
 
 /**
  * 
@@ -20,17 +20,15 @@ const getAllLevels=()=>{
 }
  */
 
+const renderLessonWords = (wordList) => {
+  // word list gives empthy data it will show a default skeleton
 
-const renderLessonWords=(wordList)=>{
+  if (wordList.length === 0) {
+    wordContainer.innerHTML = ``;
 
-// word list gives empthy data it will show a default skeleton
+    const defaultEmpthyWordSekelton = document.createElement("div");
 
-if(wordList.length===0){
-  wordContainer.innerHTML=``
-
-const defaultEmpthyWordSekelton=document.createElement('div')
-
-defaultEmpthyWordSekelton.innerHTML=`
+    defaultEmpthyWordSekelton.innerHTML = `
 
   <div class=" text-center space-y-4 py-10  font-bangla mx-auto " >
 <img src="./assets/alert-error.png" alt="" class="mx-auto">
@@ -40,100 +38,91 @@ defaultEmpthyWordSekelton.innerHTML=`
 <h6 class="font-medium text-4xl text-[#292524]">নেক্সট Lesson এ যান</h6>
 
   </div>
-`
+`;
 
-defaultEmpthyWordSekelton.classList.add('col-span-full')
+    defaultEmpthyWordSekelton.classList.add("col-span-full");
 
-wordContainer.appendChild(defaultEmpthyWordSekelton)
-return;
-}
+    wordContainer.appendChild(defaultEmpthyWordSekelton);
+    loadingShow(false);
+    return;
+  }
 
+  wordContainer.innerHTML = "";
 
+  wordList.forEach((wordData) => {
+    const { word, meaning, pronunciation } = wordData;
 
-
-
-
-wordContainer.innerHTML=''
-
-wordList.forEach(wordData=>{
-
-const {word,meaning,pronunciation}=wordData
-
-const wordCard=document.createElement('div')
-wordCard.innerHTML=`
+    const wordCard = document.createElement("div");
+    wordCard.innerHTML = `
 <div class="p-10 rounded-xl text-center space-y-3 bg-base-100 shadow-sm h-full">
 
   <h2 class="font-bold text-3xl">${word}</h2>
 <p class="font-medium text-xl">Meaning/Pronounciation</p>
-<p class="font-bangla text-2xl font-semibold">${meaning?meaning:'অর্থ খুঁজে পাওয়া যায়নি'}/${pronunciation}</p>
-<div class="flex justify-between items-center">
+<p class="font-bangla text-2xl font-semibold">${meaning ? meaning : "অর্থ খুঁজে পাওয়া যায়নি"}/${pronunciation}</p>
+<div class="flex justify-between items-center mt-10">
 <button class="btn bg-primary-content text-lg"><i class="fa-solid fa-circle-info pointer-events-none"></i></button>
 <button class="btn bg-primary-content text-lg"><i class="fa-solid fa-volume-high pointer-events-none"></i></button>
 
 </div>
 </div>
-`
+`;
 
-wordContainer.appendChild(wordCard)
+    wordContainer.appendChild(wordCard);
+  });
 
+ 
+};
 
+const lessonButtonActive = (id) => {
+  const allButtons = levelButtonsContainer.querySelectorAll(".lesson-btn");
 
-})
+  allButtons.forEach((button) => {
+    button.classList.remove("bg-primary", "text-white");
+  });
 
-}
+  const targetButton = document.getElementById(`lesson-btn-${id}`);
 
+  targetButton.classList.add("bg-primary", "text-white");
 
-const lessonButtonActive=(id)=>{
+};
 
-const allButtons=levelButtonsContainer.querySelectorAll('.lesson-btn')
+const getSpecificLessonWord = (id) => {
+  loadingShow(true);
 
-allButtons.forEach(button=>{
+  fetch(`https://openapi.programming-hero.com/api/level/${id}`)
+    .then((res) => res.json())
+    .then((x) => {
+      lessonButtonActive(id);
+   loadingShow(false);
+      return renderLessonWords(x.data);
+    });
+};
 
-  button.classList.remove('bg-primary','text-white')
+const loadAllLevelsButton = (x) => {
+  levelButtonsContainer.innerHTML = ``;
 
-})
+  x.forEach((level) => {
+    const { level_no } = level;
 
-const targetButton=document.getElementById(`lesson-btn-${id}`)
+    const buttonsDiv = document.createElement("div");
 
-targetButton.classList.add('bg-primary','text-white')
-
-
-
-}
-
-const getSpecificLessonWord=(id)=>{
-
-fetch(`https://openapi.programming-hero.com/api/level/${id}`)
-
-.then(res=>res.json()).then(x=>{
-
-  lessonButtonActive(id)
-
-return renderLessonWords(x.data)
-
-})
-
-
-}
-
-const loadAllLevelsButton=(x)=>{
-
-levelButtonsContainer.innerHTML=``
-
-x.forEach(level=>{
-
-const {level_no}=level
-
-const buttonsDiv=document.createElement('div')
-
-buttonsDiv.innerHTML=`
+    buttonsDiv.innerHTML = `
 <button onclick='getSpecificLessonWord(${level_no})'
 id='lesson-btn-${level_no}'  class="lesson-btn btn btn-primary btn-outline"><i class="fa-solid fa-book-open"></i> Lesson-${level_no}</button>
-`
+`;
 
-levelButtonsContainer.appendChild(buttonsDiv)
+    levelButtonsContainer.appendChild(buttonsDiv);
+  });
+};
 
-})
+const loadingShow = (pulse) => {
+  if (pulse) {
+    loadingContainer.classList.remove("hidden");
+    wordContainer.classList.add("hidden");
+  } else {
+    wordContainer.classList.remove("hidden");
+    loadingContainer.classList.add("hidden");
+  }
+};
 
-}
-getAllLevels()
+getAllLevels();
